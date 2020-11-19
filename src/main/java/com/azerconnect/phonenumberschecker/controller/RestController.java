@@ -1,7 +1,11 @@
 package com.azerconnect.phonenumberschecker.controller;
 
+import com.azerconnect.phonenumberschecker.entity.request.Request;
+import com.azerconnect.phonenumberschecker.entity.response.Response;
 import com.azerconnect.phonenumberschecker.service.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 @org.springframework.web.bind.annotation.RestController
@@ -13,9 +17,8 @@ public class RestController {
         this.service = service;
     }
 
-    @RequestMapping("/iseligible")
-    public void IsEligibleToSell(){
-        System.out.println("hello");
-        System.out.println(service.IsEligibleToSell("hello2"));
+    @PostMapping("/iseligible")
+    public Response IsEligibleToSell(@RequestBody Request request){
+        return service.IsEligibleToSell(request);
     }
 }
