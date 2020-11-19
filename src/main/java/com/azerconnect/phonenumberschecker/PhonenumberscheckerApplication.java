@@ -4,7 +4,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 
 /**
- * http://localhost:8080/home
+ * http://localhost:8080/api/masklist/iseligible
  */
 
 @SpringBootApplication
