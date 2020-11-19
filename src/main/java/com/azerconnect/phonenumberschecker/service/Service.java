@@ -11,6 +11,9 @@ public class Service {
         Response response = new Response();
         BlackList blackList = new BlackList();
         WhiteList whiteList = new WhiteList();
+        boolean isBlackList;
+        boolean isWhiteList;
+        int indexOfUnderline;
 
         String[] tempList = request.getBlacklistString().split(",");
         for(String currentBlackListString : tempList){
@@ -24,6 +27,7 @@ public class Service {
         System.out.println(blackList.getExactMask().size());*/
 
         tempList = request.getWhitelistString().split(",");
+
         for(String currentWhiteListString : tempList){
             if(currentWhiteListString.contains("%")) whiteList.getRangeMask().add(currentWhiteListString.substring(0, currentWhiteListString.length() - 1));
             else if(currentWhiteListString.contains("_")) whiteList.getWildcardMask().add(currentWhiteListString);
@@ -34,22 +38,25 @@ public class Service {
         System.out.println(whiteList.getWildcardMask().size());
         System.out.println(whiteList.getExactMask().size());*/
 
-        boolean isBlackList;
-        boolean isWhiteList;
-        int indexOfUnderline;
-
         for(String currentPhoneNumber : request.getMsisdnList()){
-            System.out.println(currentPhoneNumber + " is being checked");
+            //System.out.println(currentPhoneNumber + " is being checked");
             currentPhoneNumber = currentPhoneNumber.substring(3); // do not have to consider 994 while checking
             isBlackList = false;
-            isWhiteList = false;
+            isWhiteList = request.getWhitelistString().length() == 0;
 
-            for(String currentBlackListExactMask : blackList.getExactMask()){
-                if(currentPhoneNumber.equals(currentBlackListExactMask)) isBlackList = true;
-                if(isBlackList) break;
+            if(request.getBlacklistString().length() == 0 && isWhiteList){
+                response.getResponse().put("994" + currentPhoneNumber, "ok");
+                continue;
             }
 
-            System.out.println("blackList exact: " + isBlackList);
+            for(String currentBlackListExactMask : blackList.getExactMask()){
+                if (currentPhoneNumber.equals(currentBlackListExactMask)) {
+                    isBlackList = true;
+                    break;
+                }
+            }
+
+            //System.out.println("blackList exact: " + isBlackList);
 
             if(isBlackList){
                 response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is in blacklist");
@@ -57,11 +64,13 @@ public class Service {
             }
 
             for(String currentBlackListRangeMask : blackList.getRangeMask()){
-                if(currentPhoneNumber.startsWith(currentBlackListRangeMask)) isBlackList = true;
-                if(isBlackList) break;
+                if (currentPhoneNumber.startsWith(currentBlackListRangeMask)) {
+                    isBlackList = true;
+                    break;
+                }
             }
 
-            System.out.println("blackList range: " + isBlackList);
+            //System.out.println("blackList range: " + isBlackList);
 
             if(isBlackList){
                 response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is in blacklist");
@@ -73,23 +82,30 @@ public class Service {
                 if(currentPhoneNumber.startsWith(currentBlackListWildcardMask.substring(0, indexOfUnderline))
                 && currentPhoneNumber.endsWith(currentBlackListWildcardMask.substring(indexOfUnderline + 1))){
                     isBlackList = true;
+                    break;
                 }
-                if(isBlackList) break;
             }
 
-            System.out.println("blackList wildCard: " + isBlackList);
+            //System.out.println("blackList wildCard: " + isBlackList);
 
             if(isBlackList){
                 response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is in blacklist");
                 continue;
             }
 
-            for(String currentWhiteListExactMask : whiteList.getExactMask()){
-                if(currentPhoneNumber.equals(currentWhiteListExactMask)) isWhiteList = true;
-                if(isWhiteList) break;
+            if(isWhiteList){
+                response.getResponse().put("994" + currentPhoneNumber, "ok");
+                continue;
             }
 
-            System.out.println("whiteList exact: " + isWhiteList);
+            for(String currentWhiteListExactMask : whiteList.getExactMask()){
+                if (currentPhoneNumber.equals(currentWhiteListExactMask)) {
+                    isWhiteList = true;
+                    break;
+                }
+            }
+
+            //System.out.println("whiteList exact: " + isWhiteList);
 
             if(isWhiteList){
                 response.getResponse().put("994" + currentPhoneNumber, "ok");
@@ -97,11 +113,13 @@ public class Service {
             }
 
             for(String currentWhiteListRangeMask : whiteList.getRangeMask()){
-                if(currentPhoneNumber.startsWith(currentWhiteListRangeMask)) isWhiteList = true;
-                if(isWhiteList) break;
+                if (currentPhoneNumber.startsWith(currentWhiteListRangeMask)) {
+                    isWhiteList = true;
+                    break;
+                }
             }
 
-            System.out.println("whiteList range: " + isWhiteList);
+            //System.out.println("whiteList range: " + isWhiteList);
 
             if(isWhiteList){
                 response.getResponse().put("994" + currentPhoneNumber, "ok");
@@ -113,18 +131,18 @@ public class Service {
                 if(currentPhoneNumber.startsWith(currentWhiteListWildcardMask.substring(0, indexOfUnderline))
                         && currentPhoneNumber.endsWith(currentWhiteListWildcardMask.substring(indexOfUnderline + 1))){
                     isWhiteList = true;
+                    break;
                 }
-                if(isWhiteList) break;
             }
 
-            System.out.println("whiteList wildCard: " + isWhiteList);
+            //System.out.println("whiteList wildCard: " + isWhiteList);
 
             if(isWhiteList) {
                 response.getResponse().put("994" + currentPhoneNumber, "ok");
-                continue;
             }
-
-            response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is not in whilelist");
+            else{
+                response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is not in whilelist");
+            }
         }
 
         return response;

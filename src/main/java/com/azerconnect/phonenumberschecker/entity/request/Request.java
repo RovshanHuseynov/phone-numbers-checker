@@ -1,26 +1,24 @@
 package com.azerconnect.phonenumberschecker.entity.request;
 
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.List;
 
 public class Request {
-    private String[] msisdnList;
+    private List<String> msisdnList;
     private String blacklistString;
     private String whitelistString;
 
     public Request() {
+        msisdnList = new ArrayList<>();
+        blacklistString = "";
+        whitelistString = "";
     }
 
-    public Request(String[] msisdnList, String blacklistString, String whitelistString) {
-        this.msisdnList = msisdnList;
-        this.blacklistString = blacklistString;
-        this.whitelistString = whitelistString;
-    }
-
-    public String[] getMsisdnList() {
+    public List<String> getMsisdnList() {
         return msisdnList;
     }
 
-    public void setMsisdnList(String[] msisdnList) {
+    public void setMsisdnList(List<String> msisdnList) {
         this.msisdnList = msisdnList;
     }
 
@@ -43,7 +41,7 @@ public class Request {
     @Override
     public String toString() {
         return "Request{" +
-                "msisdnList=" + Arrays.toString(msisdnList) +
+                "msisdnList=" + msisdnList +
                 ", blacklistString='" + blacklistString + '\'' +
                 ", whitelistString='" + whitelistString + '\'' +
                 '}';
