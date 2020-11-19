@@ -141,7 +141,7 @@ public class Service {
                 response.getResponse().put("994" + currentPhoneNumber, "ok");
             }
             else{
-                response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is not in whilelist");
+                response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is not in whitelist");
             }
         }
 
