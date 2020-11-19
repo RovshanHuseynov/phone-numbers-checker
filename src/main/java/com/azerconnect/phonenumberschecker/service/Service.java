@@ -1,39 +1,70 @@
 package com.azerconnect.phonenumberschecker.service;
 
+import com.azerconnect.phonenumberschecker.entity.BlackList;
+import com.azerconnect.phonenumberschecker.entity.WhiteList;
 import com.azerconnect.phonenumberschecker.entity.request.Request;
 import com.azerconnect.phonenumberschecker.entity.response.Response;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @org.springframework.stereotype.Service
 public class Service {
     public Response IsEligibleToSell(Request request){
         Response response = new Response();
-        List<String> blackList = new ArrayList<>();
+        BlackList blackList = new BlackList();
+        WhiteList whiteList = new WhiteList();
 
-        String[] temp = request.getBlacklistString().split(",");
-        for(String s : temp){
-            //System.out.println(s);
-            blackList.add(s);
+        String[] tempList = request.getBlacklistString().split(",");
+        for(String currentBlackListString : tempList){
+            if(currentBlackListString.contains("%")) blackList.getRangeMask().add(currentBlackListString.substring(0, currentBlackListString.length() - 1));
+            else if(currentBlackListString.contains("_")) blackList.getWildcardMask().add(currentBlackListString);
+            else blackList.getExactMask().add(currentBlackListString);
         }
 
-        List<String> whileList = new ArrayList<>();
-        temp = request.getWhitelistString().split(",");
-        for(String s : temp){
-            whileList.add(s);
+        tempList = request.getWhitelistString().split(",");
+        for(String currentWhiteListString : tempList){
+            if(currentWhiteListString.contains("%")) whiteList.getRangeMask().add(currentWhiteListString.substring(0, currentWhiteListString.length() - 1));
+            else if(currentWhiteListString.contains("_")) whiteList.getWildcardMask().add(currentWhiteListString);
+            else whiteList.getExactMask().add(currentWhiteListString);
         }
 
-        for(String s : request.getMsisdnList()){
-            if(blackList.contains(s)){
-                response.getResponse().put(s, "msisdn = " + s + " is in blacklist");
+        boolean IsBlackList = false;
+        boolean IsWhiteList = true;
+        int indexOfUnderline;
+
+        for(String currentPhoneNumber : request.getMsisdnList()){
+            IsBlackList = false;
+
+            for(String currentBlackListExactMask : blackList.getExactMask()){
+                if(currentPhoneNumber.equals(currentBlackListExactMask)) IsBlackList = true;
+                if(IsBlackList) break;
             }
-            else if(whileList.size() > 0 && !whileList.contains(s)){
-                response.getResponse().put(s, "msisdn = " + s + " is not in whilelist");
+
+            if(IsBlackList){
+                response.getResponse().put(currentPhoneNumber, "msisdn = " + currentPhoneNumber + " is in blacklist");
+                continue;
             }
-            else{
-                response.getResponse().put(s, "ok");
+
+            for(String currentBlackListRangeMask : blackList.getRangeMask()){
+                if(currentPhoneNumber.substring(0, currentBlackListRangeMask.length()).equals(currentBlackListRangeMask)) IsBlackList = true;
+                if(IsBlackList) break;
             }
+
+            if(IsBlackList){
+                response.getResponse().put(currentPhoneNumber, "msisdn = " + currentPhoneNumber + " is in blacklist");
+                continue;
+            }
+
+            for(String currentBlackListWildcardMask : blackList.getWildcardMask()){
+                indexOfUnderline = currentBlackListWildcardMask.indexOf("_");
+                if(currentPhoneNumber.substring(3, indexOfUnderline + 3).equals(currentBlackListWildcardMask.substring(0, indexOfUnderline))
+                && currentPhoneNumber.substring(4 + indexOfUnderline).equals(currentBlackListWildcardMask.substring(indexOfUnderline + 1))){
+                    IsBlackList = true;
+                }
+                if(IsBlackList) break;
+            }
+
+            response.getResponse().put(currentPhoneNumber, "ok");
+
+            //response.getResponse().put(s, "msisdn = " + s + " is not in whilelist");
         }
 
         return response;
