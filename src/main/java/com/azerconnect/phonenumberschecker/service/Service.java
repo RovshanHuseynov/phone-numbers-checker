@@ -5,34 +5,32 @@ import com.azerconnect.phonenumberschecker.entity.WhiteList;
 import com.azerconnect.phonenumberschecker.entity.request.Request;
 import com.azerconnect.phonenumberschecker.entity.response.Response;
 
+import java.util.List;
+
 @org.springframework.stereotype.Service
 public class Service {
+    private BlackList blackList;
+    private WhiteList whiteList;
+
+    public Service() {
+        this.blackList = new BlackList();
+        this.whiteList = new WhiteList();
+    }
+
     public Response IsEligibleToSell(Request request){
         Response response = new Response();
-        BlackList blackList = new BlackList();
-        WhiteList whiteList = new WhiteList();
         boolean isBlackList;
         boolean isWhiteList;
         int indexOfUnderline;
 
+        parseAccordingToInputType("blackList", request.getBlacklistString());
         String[] tempList = request.getBlacklistString().split(",");
-        for(String currentBlackListString : tempList){
-            if(currentBlackListString.contains("%")) blackList.getRangeMask().add(currentBlackListString.substring(0, currentBlackListString.length() - 1));
-            else if(currentBlackListString.contains("_")) blackList.getWildcardMask().add(currentBlackListString);
-            else blackList.getExactMask().add(currentBlackListString);
-        }
 
         /*System.out.println(blackList.getRangeMask().size());
         System.out.println(blackList.getWildcardMask().size());
         System.out.println(blackList.getExactMask().size());*/
 
-        tempList = request.getWhitelistString().split(",");
-
-        for(String currentWhiteListString : tempList){
-            if(currentWhiteListString.contains("%")) whiteList.getRangeMask().add(currentWhiteListString.substring(0, currentWhiteListString.length() - 1));
-            else if(currentWhiteListString.contains("_")) whiteList.getWildcardMask().add(currentWhiteListString);
-            else whiteList.getExactMask().add(currentWhiteListString);
-        }
+        parseAccordingToInputType("whiteList", request.getWhitelistString());
 
         /*System.out.println(whiteList.getRangeMask().size());
         System.out.println(whiteList.getWildcardMask().size());
@@ -146,5 +144,28 @@ public class Service {
         }
 
         return response;
+    }
+
+    public void parseAccordingToInputType(String listType, String list){
+        String[] splitList = list.split(",");
+
+        switch (listType){
+            case "blackList" :
+                for(String currentBlackListNumber : splitList){
+                    if(currentBlackListNumber.contains("%")) blackList.getRangeMask().add(currentBlackListNumber.substring(0, currentBlackListNumber.length() - 1));
+                    else if(currentBlackListNumber.contains("_")) blackList.getWildcardMask().add(currentBlackListNumber);
+                    else blackList.getExactMask().add(currentBlackListNumber);
+                }
+                break;
+            case "whiteList" :
+                for(String currentWhiteListNumber : splitList){
+                    if(currentWhiteListNumber.contains("%")) whiteList.getRangeMask().add(currentWhiteListNumber.substring(0, currentWhiteListNumber.length() - 1));
+                    else if(currentWhiteListNumber.contains("_")) whiteList.getWildcardMask().add(currentWhiteListNumber);
+                    else whiteList.getExactMask().add(currentWhiteListNumber);
+                }
+                break;
+            default:
+                System.out.println("Exception");
+        }
     }
 }
