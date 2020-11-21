@@ -4,6 +4,7 @@ import com.azerconnect.phonenumberschecker.entity.request.InputList;
 import com.azerconnect.phonenumberschecker.entity.request.Request;
 import com.azerconnect.phonenumberschecker.entity.response.Response;
 import com.azerconnect.phonenumberschecker.exception.IllegalCharacterException;
+import com.azerconnect.phonenumberschecker.exception.WrongLengthException;
 
 import java.util.Map;
 
@@ -56,7 +57,10 @@ public class Service {
         System.out.println();
 
         for(String currentPhoneNumber : request.getMsisdnList()){
-            if(!isDigit(currentPhoneNumber)){
+            if(currentPhoneNumber.length() != 12){
+                throw new WrongLengthException("msisdnList contains " + currentPhoneNumber + " which its length is not 12");
+            }
+            else if(!isDigit(currentPhoneNumber)){
                 throw new IllegalCharacterException("msisdnList contains " + currentPhoneNumber + " which includes illegal character");
             }
 
