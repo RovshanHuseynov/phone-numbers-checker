@@ -11,50 +11,48 @@ public class Service {
     private InputList blackList;
     private InputList whiteList;
 
-
     public Response IsEligibleToSell(Request request){
         Response response = new Response();
         blackList = new InputList();
         whiteList = new InputList();
         boolean isBlackList;
         boolean isWhiteList;
-        int indexOfUnderline;
 
         parseAccordingToInputType("blackList", request.getBlacklistString());
 
-        /*System.out.println(blackList.getRangeMask().size());
+        System.out.println(blackList.getRangeMask().size());
         for(String s : blackList.getRangeMask().keySet()){
             System.out.print(s + " ");
         }
         System.out.println();
         System.out.println(blackList.getWildcardMask().size());
         for(String s : blackList.getWildcardMask().keySet()){
-            System.out.print(s + " ");
+            System.out.print(s + blackList.getWildcardMask().get(s));
         }
         System.out.println();
         System.out.println(blackList.getExactMask().size());
         for(String s : blackList.getExactMask().keySet()){
             System.out.print(s + " ");
         }
-        System.out.println();*/
+        System.out.println();
 
         parseAccordingToInputType("whiteList", request.getWhitelistString());
 
-        /*System.out.println(whiteList.getRangeMask().size());
+        System.out.println(whiteList.getRangeMask().size());
         for(String s : whiteList.getRangeMask().keySet()){
             System.out.print(s + " ");
         }
         System.out.println();
         System.out.println(whiteList.getWildcardMask().size());
         for(String s : whiteList.getWildcardMask().keySet()){
-            System.out.print(s + " ");
+            System.out.print(s + whiteList.getWildcardMask().get(s));
         }
         System.out.println();
         System.out.println(whiteList.getExactMask().size());
         for(String s : whiteList.getExactMask().keySet()){
             System.out.print(s + " ");
         }
-        System.out.println();*/
+        System.out.println();
 
         for(String currentPhoneNumber : request.getMsisdnList()){
             System.out.println(currentPhoneNumber + " is being checked");
@@ -63,7 +61,6 @@ public class Service {
             isWhiteList = request.getWhitelistString().length() == 0;
 
             if(request.getBlacklistString().length() == 0 && isWhiteList){
-                System.out.println("here -------------------");
                 response.getResponse().put("994" + currentPhoneNumber, "ok");
                 continue;
             }
@@ -89,18 +86,22 @@ public class Service {
                 continue;
             }
 
-            for(String currentBlackListWildcardMask : blackList.getWildcardMask().keySet()){
-                indexOfUnderline = currentBlackListWildcardMask.indexOf("_");
-                if(currentPhoneNumber.startsWith(currentBlackListWildcardMask.substring(0, indexOfUnderline))
-                && currentPhoneNumber.endsWith(currentBlackListWildcardMask.substring(indexOfUnderline + 1))){
+            Map<String, String> temp1 = blackList.getWildcardMask();
+            String searchedKey, searchedValue;
+
+            for(int i=0; i<=8; i++){
+                searchedKey = currentPhoneNumber.substring(0,i);
+                searchedValue = currentPhoneNumber.substring(i+1);
+                if(temp1.containsKey(searchedKey) && temp1.get(searchedKey).equals(searchedValue)){
+                    System.out.println("blackList wildcard: true " + searchedKey + "_" + searchedValue);
+                    response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is in blacklist");
                     isBlackList = true;
                     break;
                 }
             }
 
             if(isBlackList){
-                System.out.println("blackList wildcard: true");
-                response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is in blacklist");
+                //response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is in blacklist");
                 continue;
             }
 
@@ -132,22 +133,28 @@ public class Service {
                 continue;
             }
 
-            for(String currentWhiteListWildcardMask : whiteList.getWildcardMask().keySet()){
-                indexOfUnderline = currentWhiteListWildcardMask.indexOf("_");
-                if(currentPhoneNumber.startsWith(currentWhiteListWildcardMask.substring(0, indexOfUnderline))
-                        && currentPhoneNumber.endsWith(currentWhiteListWildcardMask.substring(indexOfUnderline + 1))){
+            temp1 = whiteList.getWildcardMask();
+
+            for(int i=0; i<=8; i++){
+                searchedKey = currentPhoneNumber.substring(0,i);
+                searchedValue = currentPhoneNumber.substring(i+1);
+                if(temp1.containsKey(searchedKey) && temp1.get(searchedKey).equals(searchedValue)){
+                    //response.getResponse().put("994" + currentPhoneNumber, "ok");
+                    System.out.println("whiteList wildcard: true " + searchedKey + "_" + searchedValue);
                     isWhiteList = true;
                     break;
                 }
             }
 
             if(isWhiteList) {
-                System.out.println("whiteList wildCard: " + isWhiteList);
                 response.getResponse().put("994" + currentPhoneNumber, "ok");
             }
             else{
+                System.out.println("not in whiteList");
                 response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is not in whitelist");
             }
+
+            System.out.println("-----------------------------------------");
         }
 
         return response;
@@ -158,21 +165,27 @@ public class Service {
 
         switch (listType){
             case "blackList" :
-                for(String currentBlackListNumber : splitList){
-                    if(currentBlackListNumber.contains("%")) blackList.getRangeMask().put(currentBlackListNumber.substring(0, currentBlackListNumber.length() - 1), true);
-                    else if(currentBlackListNumber.contains("_")) blackList.getWildcardMask().put(currentBlackListNumber, true);
-                    else blackList.getExactMask().put(currentBlackListNumber, true);
-                }
+                fillInputList(splitList, blackList);
                 break;
             case "whiteList" :
-                for(String currentWhiteListNumber : splitList){
-                    if(currentWhiteListNumber.contains("%")) whiteList.getRangeMask().put(currentWhiteListNumber.substring(0, currentWhiteListNumber.length() - 1), true);
-                    else if(currentWhiteListNumber.contains("_")) whiteList.getWildcardMask().put(currentWhiteListNumber, true);
-                    else whiteList.getExactMask().put(currentWhiteListNumber, true);
-                }
+                fillInputList(splitList, whiteList);
                 break;
             default:
                 System.out.println("Exception");
+        }
+    }
+
+    private void fillInputList(String[] splitList, InputList blackList) {
+        int indexOfUnderline;
+        for(String currentBlackListNumber : splitList){
+            if(currentBlackListNumber.contains("%")){
+                blackList.getRangeMask().put(currentBlackListNumber.substring(0, currentBlackListNumber.length() - 1), true);
+            }
+            else if(currentBlackListNumber.contains("_")){
+                indexOfUnderline = currentBlackListNumber.indexOf("_");
+                blackList.getWildcardMask().put(currentBlackListNumber.substring(0, indexOfUnderline + 1), currentBlackListNumber.substring(indexOfUnderline + 1));
+            }
+            else blackList.getExactMask().put(currentBlackListNumber, true);
         }
     }
 }

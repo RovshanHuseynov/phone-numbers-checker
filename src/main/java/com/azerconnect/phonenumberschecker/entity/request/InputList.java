@@ -5,7 +5,7 @@ import java.util.Map;
 
 public class InputList {
     private Map<String, Boolean> rangeMask;
-    private Map<String, Boolean> wildcardMask;
+    private Map<String, String> wildcardMask;
     private Map<String, Boolean> exactMask;
 
     public InputList() {
@@ -22,11 +22,11 @@ public class InputList {
         this.rangeMask = rangeMask;
     }
 
-    public Map<String, Boolean> getWildcardMask() {
+    public Map<String, String> getWildcardMask() {
         return wildcardMask;
     }
 
-    public void setWildcardMask(Map<String, Boolean> wildcardMask) {
+    public void setWildcardMask(Map<String, String> wildcardMask) {
         this.wildcardMask = wildcardMask;
     }
 
