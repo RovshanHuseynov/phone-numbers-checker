@@ -1,20 +1,17 @@
 package com.azerconnect.phonenumberschecker.service;
 
-import com.azerconnect.phonenumberschecker.entity.BlackList;
-import com.azerconnect.phonenumberschecker.entity.WhiteList;
+import com.azerconnect.phonenumberschecker.entity.request.InputList;
 import com.azerconnect.phonenumberschecker.entity.request.Request;
 import com.azerconnect.phonenumberschecker.entity.response.Response;
 
-import java.util.List;
-
 @org.springframework.stereotype.Service
 public class Service {
-    private BlackList blackList;
-    private WhiteList whiteList;
+    private InputList blackList;
+    private InputList whiteList;
 
     public Service() {
-        this.blackList = new BlackList();
-        this.whiteList = new WhiteList();
+        this.blackList = new InputList();
+        this.whiteList = new InputList();
     }
 
     public Response IsEligibleToSell(Request request){
@@ -24,7 +21,6 @@ public class Service {
         int indexOfUnderline;
 
         parseAccordingToInputType("blackList", request.getBlacklistString());
-        String[] tempList = request.getBlacklistString().split(",");
 
         /*System.out.println(blackList.getRangeMask().size());
         System.out.println(blackList.getWildcardMask().size());
