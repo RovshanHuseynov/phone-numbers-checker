@@ -21,17 +21,17 @@ public class Service {
 
         fillMapsAccordingToRequest("blackList", request.getBlacklistString());
 
-        System.out.println(blackList.getRangeMask().size());
+        System.out.println("black range " + blackList.getRangeMask().size());
         for(String s : blackList.getRangeMask().keySet()){
             System.out.print(s + " ");
         }
         System.out.println();
-        System.out.println(blackList.getWildcardMask().size());
+        System.out.println("black wild " + blackList.getWildcardMask().size());
         for(String s : blackList.getWildcardMask().keySet()){
             System.out.print(s + "_" + blackList.getWildcardMask().get(s) + " ");
         }
         System.out.println();
-        System.out.println(blackList.getExactMask().size());
+        System.out.println("black exact " + blackList.getExactMask().size());
         for(String s : blackList.getExactMask().keySet()){
             System.out.print(s + " ");
         }
@@ -39,17 +39,17 @@ public class Service {
 
         fillMapsAccordingToRequest("whiteList", request.getWhitelistString());
 
-        System.out.println(whiteList.getRangeMask().size());
+        System.out.println("white range " + whiteList.getRangeMask().size());
         for(String s : whiteList.getRangeMask().keySet()){
             System.out.print(s + " ");
         }
         System.out.println();
-        System.out.println(whiteList.getWildcardMask().size());
+        System.out.println("white wild " + whiteList.getWildcardMask().size());
         for(String s : whiteList.getWildcardMask().keySet()){
             System.out.print(s + "_" + whiteList.getWildcardMask().get(s) + " ");
         }
         System.out.println();
-        System.out.println(whiteList.getExactMask().size());
+        System.out.println("white exact " + whiteList.getExactMask().size());
         for(String s : whiteList.getExactMask().keySet()){
             System.out.print(s + " ");
         }
@@ -58,32 +58,33 @@ public class Service {
         for(String currentPhoneNumber : request.getMsisdnList()){
             System.out.println(currentPhoneNumber + " is being checked");
             currentPhoneNumber = currentPhoneNumber.substring(3); // do not have to consider 994 while checking
-            isBlackList = request.getBlacklistString().length() == 0;
+            isBlackList = false;
             isWhiteList = request.getWhitelistString().length() == 0;
 
-            if(!isBlackList && isWhiteList){
+            if(request.getBlacklistString().length() == 0 && isWhiteList){
                 response.getResponse().put("994" + currentPhoneNumber, "ok");
+                System.out.println("goooo");
                 continue;
             }
 
             if(blackList.getExactMask().containsKey(currentPhoneNumber)){
-                System.out.println("blackList exact: true");
                 response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is in blacklist");
+                System.out.println("blackList exact: true");
                 continue;
             }
 
             Map<String, Boolean> temp = blackList.getRangeMask();
             for(int i=1; i<lenOfOneNumber; i++){
                 if(temp.containsKey(currentPhoneNumber.substring(0, i))){
-                    System.out.println("blackList range: " + isBlackList + " " + currentPhoneNumber.substring(0, i));
-                    response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is in blacklist");
+                    //response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is in blacklist");
                     isBlackList = true;
+                    System.out.println("blackList range: " + isBlackList + " " + currentPhoneNumber.substring(0, i));
                     break;
                 }
             }
 
             if(isBlackList){
-                //response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is in blacklist");
+                response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is in blacklist");
                 continue;
             }
 
@@ -93,36 +94,36 @@ public class Service {
                 searchedKey = currentPhoneNumber.substring(0,i);
                 searchedValue = currentPhoneNumber.substring(i+1);
                 if(temp1.containsKey(searchedKey) && temp1.get(searchedKey).equals(searchedValue)){
-                    System.out.println("blackList wildcard: true " + searchedKey + "_" + searchedValue);
-                    response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is in blacklist");
+                    //response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is in blacklist");
                     isBlackList = true;
+                    System.out.println("blackList wildcard: true " + searchedKey + "_" + searchedValue);
                     break;
                 }
             }
 
             if(isBlackList){
-                //response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is in blacklist");
+                response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is in blacklist");
                 continue;
             }
 
             if(whiteList.getExactMask().containsKey(currentPhoneNumber)){
-                System.out.println("whiteList exact: " + true);
                 response.getResponse().put("994" + currentPhoneNumber, "ok");
+                System.out.println("whiteList exact: " + true);
                 continue;
             }
 
             temp = whiteList.getRangeMask();
             for(int i=1; i<lenOfOneNumber; i++){
                 if(temp.containsKey(currentPhoneNumber.substring(0, i))){
-                    System.out.println("whiteList range: true " + currentPhoneNumber.substring(0, i));
-                    response.getResponse().put("994" + currentPhoneNumber, "ok");
+                    //response.getResponse().put("994" + currentPhoneNumber, "ok");
                     isWhiteList = true;
+                    System.out.println("whiteList range: " + isWhiteList + " " + currentPhoneNumber.substring(0, i));
                     break;
                 }
             }
 
             if(isWhiteList){
-                //response.getResponse().put("994" + currentPhoneNumber, "ok");
+                response.getResponse().put("994" + currentPhoneNumber, "ok");
                 continue;
             }
 
@@ -131,25 +132,31 @@ public class Service {
                 searchedKey = currentPhoneNumber.substring(0,i);
                 searchedValue = currentPhoneNumber.substring(i+1);
                 if(temp1.containsKey(searchedKey) && temp1.get(searchedKey).equals(searchedValue)){
-                    System.out.println("whiteList wildcard: true " + searchedKey + "_" + searchedValue);
-                    response.getResponse().put("994" + currentPhoneNumber, "ok");
+                    //response.getResponse().put("994" + currentPhoneNumber, "ok");
                     isWhiteList = true;
+                    System.out.println("whiteList wildcard: " + isWhiteList + " " + searchedKey + "_" + searchedValue);
                     break;
                 }
             }
 
-            if(!isWhiteList) {
+            if(isWhiteList){
+                response.getResponse().put("994" + currentPhoneNumber, "ok");
+                continue;
+            }
+            else{
                 System.out.println("not in whiteList");
                 response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is not in whitelist");
             }
-
-            System.out.println("-----------------------------------------");
         }
 
         return response;
     }
 
     public void fillMapsAccordingToRequest(String mapName, String inputData){
+        if(inputData.length() == 0){
+            return;
+        }
+
         String[] splitData = inputData.split(",");
 
         switch (mapName){
