@@ -14,6 +14,12 @@ public class Request {
         whitelistString = "";
     }
 
+    public Request(List<String> msisdnList, String blacklistString, String whitelistString) {
+        this.msisdnList = msisdnList;
+        this.blacklistString = blacklistString;
+        this.whitelistString = whitelistString;
+    }
+
     public List<String> getMsisdnList() {
         return msisdnList;
     }
