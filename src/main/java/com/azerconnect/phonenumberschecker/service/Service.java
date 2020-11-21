@@ -18,7 +18,7 @@ public class Service {
         boolean isBlackList;
         boolean isWhiteList;
 
-        parseAccordingToInputType("blackList", request.getBlacklistString());
+        fillMapsAccordingToRequest("blackList", request.getBlacklistString());
 
         System.out.println(blackList.getRangeMask().size());
         for(String s : blackList.getRangeMask().keySet()){
@@ -36,7 +36,7 @@ public class Service {
         }
         System.out.println();
 
-        parseAccordingToInputType("whiteList", request.getWhitelistString());
+        fillMapsAccordingToRequest("whiteList", request.getWhitelistString());
 
         System.out.println(whiteList.getRangeMask().size());
         for(String s : whiteList.getRangeMask().keySet()){
@@ -160,32 +160,32 @@ public class Service {
         return response;
     }
 
-    public void parseAccordingToInputType(String listType, String list){
-        String[] splitList = list.split(",");
+    public void fillMapsAccordingToRequest(String mapName, String inputData){
+        String[] splitData = inputData.split(",");
 
-        switch (listType){
+        switch (mapName){
             case "blackList" :
-                fillInputList(splitList, blackList);
+                fillMap(blackList, splitData);
                 break;
             case "whiteList" :
-                fillInputList(splitList, whiteList);
+                fillMap(whiteList, splitData);
                 break;
             default:
                 System.out.println("Exception");
         }
     }
 
-    private void fillInputList(String[] splitList, InputList blackList) {
+    private void fillMap(InputList map, String[] splitData) {
         int indexOfUnderline;
-        for(String currentBlackListNumber : splitList){
-            if(currentBlackListNumber.contains("%")){
-                blackList.getRangeMask().put(currentBlackListNumber.substring(0, currentBlackListNumber.length() - 1), true);
+        for(String currentNumber : splitData){
+            if(currentNumber.contains("%")){
+                map.getRangeMask().put(currentNumber.substring(0, currentNumber.length() - 1), true);
             }
-            else if(currentBlackListNumber.contains("_")){
-                indexOfUnderline = currentBlackListNumber.indexOf("_");
-                blackList.getWildcardMask().put(currentBlackListNumber.substring(0, indexOfUnderline + 1), currentBlackListNumber.substring(indexOfUnderline + 1));
+            else if(currentNumber.contains("_")){
+                indexOfUnderline = currentNumber.indexOf("_");
+                map.getWildcardMask().put(currentNumber.substring(0, indexOfUnderline + 1), currentNumber.substring(indexOfUnderline + 1));
             }
-            else blackList.getExactMask().put(currentBlackListNumber, true);
+            else map.getExactMask().put(currentNumber, true);
         }
     }
 }
