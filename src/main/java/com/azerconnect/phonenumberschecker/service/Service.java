@@ -3,6 +3,7 @@ package com.azerconnect.phonenumberschecker.service;
 import com.azerconnect.phonenumberschecker.entity.request.InputList;
 import com.azerconnect.phonenumberschecker.entity.request.Request;
 import com.azerconnect.phonenumberschecker.entity.response.Response;
+import com.azerconnect.phonenumberschecker.exception.IllegalCharacterException;
 
 import java.util.Map;
 
@@ -18,7 +19,7 @@ public class Service {
         whiteList = new InputList();
         lenOfOneNumber = request.getMsisdnList().get(0).length() - 3;    // do not have to consider 994 while checking
 
-        fillMapsAccordingToRequest("blackList", request.getBlacklistString());
+        parseRequest("blacklistString", request.getBlacklistString());
 
         System.out.println("black range " + blackList.getRangeMask().size());
         for(String s : blackList.getRangeMask().keySet()){
@@ -36,7 +37,7 @@ public class Service {
         }
         System.out.println();
 
-        fillMapsAccordingToRequest("whiteList", request.getWhitelistString());
+        parseRequest("whitelistString", request.getWhitelistString());
 
         System.out.println("white range " + whiteList.getRangeMask().size());
         for(String s : whiteList.getRangeMask().keySet()){
@@ -55,6 +56,10 @@ public class Service {
         System.out.println();
 
         for(String currentPhoneNumber : request.getMsisdnList()){
+            if(!isDigit(currentPhoneNumber)){
+                throw new IllegalCharacterException("msisdnList contains " + currentPhoneNumber + " which includes illegal character");
+            }
+
             System.out.println(currentPhoneNumber + " is being checked");
             currentPhoneNumber = currentPhoneNumber.substring(3); // do not have to consider 994 while checking
 
@@ -76,37 +81,53 @@ public class Service {
         return response;
     }
 
-    public void fillMapsAccordingToRequest(String mapName, String inputData){
+    private void parseRequest(String listName, String inputData){
         if(inputData.length() == 0){
             return;
         }
 
         String[] splitData = inputData.split(",");
 
-        switch (mapName){
-            case "blackList" :
-                fillMap(blackList, splitData);
+        switch (listName){
+            case "blacklistString" :
+                fillMap(listName, blackList, splitData);
                 break;
-            case "whiteList" :
-                fillMap(whiteList, splitData);
+            case "whitelistString" :
+                fillMap(listName, whiteList, splitData);
                 break;
             default:
                 System.out.println("Exception");
         }
     }
 
-    private void fillMap(InputList map, String[] splitData) {
+    private void fillMap(String mapName, InputList map, String[] splitData) {
         int indexOfUnderline;
         for(String currentNumber : splitData){
-            if(currentNumber.contains("%")){
+            if(currentNumber.endsWith("%")){
+                if(!isDigit(currentNumber.substring(0, currentNumber.length() - 1))){
+                    throw new IllegalCharacterException(mapName + " contains " + currentNumber + " which includes illegal character");
+                }
                 map.getRangeMask().put(currentNumber.substring(0, currentNumber.length() - 1), true);
             }
             else if(currentNumber.contains("_")){
                 indexOfUnderline = currentNumber.indexOf("_");
+                if(!isDigit(currentNumber.substring(0, indexOfUnderline)
+                + currentNumber.substring(indexOfUnderline + 1))){
+                    throw new IllegalCharacterException(mapName + " contains " + currentNumber + " which includes illegal character");
+                }
                 map.getWildcardMask().put(currentNumber.substring(0, indexOfUnderline), currentNumber.substring(indexOfUnderline + 1));
             }
-            else map.getExactMask().put(currentNumber, true);
+            else {
+                if(!isDigit(currentNumber)){
+                    throw new IllegalCharacterException(mapName + " contains " + currentNumber + " which includes illegal character");
+                }
+                map.getExactMask().put(currentNumber, true);
+            }
         }
+    }
+
+    private Boolean isDigit(String currentNumber){
+        return currentNumber.chars().allMatch(Character::isDigit);
     }
 
     private boolean mapContains(String currentPhoneNumber, InputList inputList, String nameOfInputList) {
