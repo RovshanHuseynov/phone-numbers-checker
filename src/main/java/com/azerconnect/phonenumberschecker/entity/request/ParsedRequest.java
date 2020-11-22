@@ -3,12 +3,12 @@ package com.azerconnect.phonenumberschecker.entity.request;
 import java.util.HashMap;
 import java.util.Map;
 
-public class InputList {
+public class ParsedRequest {
     private Map<String, Boolean> rangeMask;
     private Map<String, String> wildcardMask;
     private Map<String, Boolean> exactMask;
 
-    public InputList() {
+    public ParsedRequest() {
         rangeMask = new HashMap<>();
         wildcardMask = new HashMap<>();
         exactMask = new HashMap<>();
@@ -40,7 +40,7 @@ public class InputList {
 
     @Override
     public String toString() {
-        return "InputList{" +
+        return "ParsedRequest{" +
                 "rangeMask=" + rangeMask +
                 ", wildcardMask=" + wildcardMask +
                 ", exactMask=" + exactMask +

@@ -1,6 +1,6 @@
 package com.azerconnect.phonenumberschecker.service;
 
-import com.azerconnect.phonenumberschecker.entity.request.InputList;
+import com.azerconnect.phonenumberschecker.entity.request.ParsedRequest;
 import com.azerconnect.phonenumberschecker.entity.request.Request;
 import com.azerconnect.phonenumberschecker.entity.response.Response;
 import com.azerconnect.phonenumberschecker.exception.IllegalCharacterException;
@@ -9,54 +9,21 @@ import com.azerconnect.phonenumberschecker.exception.WrongLengthException;
 import java.util.Map;
 
 @org.springframework.stereotype.Service
-public class Service {
-    private InputList blackList;
-    private InputList whiteList;
-    private int lenOfOneNumber;
+public class CheckService {
+    private ParsedRequest blackList;
+    private ParsedRequest whiteList;
 
     public Response IsEligibleToSell(Request request){
         Response response = new Response();
-        blackList = new InputList();
-        whiteList = new InputList();
-        lenOfOneNumber = request.getMsisdnList().get(0).length() - 3;    // do not have to consider 994 while checking
+        blackList = null;
+        whiteList = null;
 
         parseRequest("blacklistString", request.getBlacklistString());
-
-        System.out.println("black range " + blackList.getRangeMask().size());
-        for(String s : blackList.getRangeMask().keySet()){
-            System.out.print(s + " ");
-        }
-        System.out.println();
-        System.out.println("black wild " + blackList.getWildcardMask().size());
-        for(String s : blackList.getWildcardMask().keySet()){
-            System.out.print(s + "_" + blackList.getWildcardMask().get(s) + " ");
-        }
-        System.out.println();
-        System.out.println("black exact " + blackList.getExactMask().size());
-        for(String s : blackList.getExactMask().keySet()){
-            System.out.print(s + " ");
-        }
-        System.out.println();
-
         parseRequest("whitelistString", request.getWhitelistString());
 
-        System.out.println("white range " + whiteList.getRangeMask().size());
-        for(String s : whiteList.getRangeMask().keySet()){
-            System.out.print(s + " ");
-        }
-        System.out.println();
-        System.out.println("white wild " + whiteList.getWildcardMask().size());
-        for(String s : whiteList.getWildcardMask().keySet()){
-            System.out.print(s + "_" + whiteList.getWildcardMask().get(s) + " ");
-        }
-        System.out.println();
-        System.out.println("white exact " + whiteList.getExactMask().size());
-        for(String s : whiteList.getExactMask().keySet()){
-            System.out.print(s + " ");
-        }
-        System.out.println();
-
         for(String currentPhoneNumber : request.getMsisdnList()){
+            System.out.println(currentPhoneNumber + " is being checked");
+
             if(currentPhoneNumber.length() != 12){
                 throw new WrongLengthException("msisdnList contains " + currentPhoneNumber + " which its length is not 12");
             }
@@ -64,24 +31,19 @@ public class Service {
                 throw new IllegalCharacterException("msisdnList contains " + currentPhoneNumber + " which includes illegal character");
             }
 
-            System.out.println(currentPhoneNumber + " is being checked");
-            currentPhoneNumber = currentPhoneNumber.substring(3); // do not have to consider 994 while checking
-
-            if(request.getBlacklistString().length() == 0 && request.getWhitelistString().length() == 0){
-                response.getResponse().put("994" + currentPhoneNumber, "ok");
-            }
-            else if(mapContains(currentPhoneNumber, blackList, "blackList")){
-                response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is in blacklist");
+            if(mapContains(currentPhoneNumber, blackList, "blackList")){
+                response.getResponse().put(currentPhoneNumber, "msisdn = " + currentPhoneNumber + " is in blacklist");
             }
             else if(mapContains(currentPhoneNumber, whiteList, "whiteList")){
-                response.getResponse().put("994" + currentPhoneNumber, "ok");
+                response.getResponse().put(currentPhoneNumber, "ok");
             }
             else {
                 System.out.println("not in whiteList");
-                response.getResponse().put("994" + currentPhoneNumber, "msisdn = 994" + currentPhoneNumber + " is not in whitelist");
+                response.getResponse().put(currentPhoneNumber, "msisdn = " + currentPhoneNumber + " is not in whitelist");
             }
         }
 
+        System.out.println("---------------------------------------");
         return response;
     }
 
@@ -94,9 +56,11 @@ public class Service {
 
         switch (listName){
             case "blacklistString" :
+                blackList = new ParsedRequest();
                 fillMap(listName, blackList, splitData);
                 break;
             case "whitelistString" :
+                whiteList = new ParsedRequest();
                 fillMap(listName, whiteList, splitData);
                 break;
             default:
@@ -104,8 +68,9 @@ public class Service {
         }
     }
 
-    private void fillMap(String mapName, InputList map, String[] splitData) {
+    private void fillMap(String mapName, ParsedRequest map, String[] splitData) {
         int indexOfUnderline;
+
         for(String currentNumber : splitData){
             if(currentNumber.endsWith("%")){
                 if(!isDigit(currentNumber.substring(0, currentNumber.length() - 1))){
@@ -134,28 +99,40 @@ public class Service {
         return currentNumber.chars().allMatch(Character::isDigit);
     }
 
-    private boolean mapContains(String currentPhoneNumber, InputList inputList, String nameOfInputList) {
-        Map<String, Boolean> map = inputList.getExactMask();
-        if(map.containsKey(currentPhoneNumber)){
-            System.out.println(nameOfInputList + " exact: true");
+    private boolean mapContains(String currentPhoneNumber, ParsedRequest parsedRequest, String typeOfInputList) {
+        if(typeOfInputList.equals("blackList") && parsedRequest == null){
+            System.out.println("empty blackList");
+            return false;
+        }
+        else if(typeOfInputList.equals("whiteList") && parsedRequest == null){
+            System.out.println("empty whiteList");
             return true;
         }
 
-        map = inputList.getRangeMask();
-        for(int i=1; i<lenOfOneNumber; i++){
+        currentPhoneNumber = currentPhoneNumber.substring(3); // do not have to consider 994 while checking
+        int lenOfCurrentPhoneNumber = currentPhoneNumber.length();
+        Map<String, Boolean> map = parsedRequest.getExactMask();
+
+        if(map.containsKey(currentPhoneNumber)){
+            System.out.println(typeOfInputList + " exact: true");
+            return true;
+        }
+
+        map = parsedRequest.getRangeMask();
+        for(int i=1; i<lenOfCurrentPhoneNumber; i++){
             if(map.containsKey(currentPhoneNumber.substring(0, i))){
-                System.out.println(nameOfInputList + " range: " + true + " " + currentPhoneNumber.substring(0, i));
+                System.out.println(typeOfInputList + " range: " + true + " " + currentPhoneNumber.substring(0, i));
                 return true;
             }
         }
 
-        Map<String, String> map2 = inputList.getWildcardMask();
+        Map<String, String> map2 = parsedRequest.getWildcardMask();
         String searchedKey, searchedValue;
-        for(int i=0; i<lenOfOneNumber; i++){
+        for(int i=0; i<lenOfCurrentPhoneNumber; i++){
             searchedKey = currentPhoneNumber.substring(0,i);
             searchedValue = currentPhoneNumber.substring(i+1);
             if(map2.containsKey(searchedKey) && map2.get(searchedKey).equals(searchedValue)){
-                System.out.println(nameOfInputList + " wildcard: true " + searchedKey + "_" + searchedValue);
+                System.out.println(typeOfInputList + " wildcard: true " + searchedKey + "_" + searchedValue);
                 return true;
             }
         }

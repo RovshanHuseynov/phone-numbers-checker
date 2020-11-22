@@ -1,18 +1,11 @@
 package com.azerconnect.phonenumberschecker.entity.request;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class Request {
     private List<String> msisdnList;
     private String blacklistString;
     private String whitelistString;
-
-    public Request() {
-        msisdnList = new ArrayList<>();
-        blacklistString = "";
-        whitelistString = "";
-    }
 
     public Request(List<String> msisdnList, String blacklistString, String whitelistString) {
         this.msisdnList = msisdnList;
