@@ -3,8 +3,7 @@ package com.azerconnect.phonenumberschecker.service;
 import com.azerconnect.phonenumberschecker.entity.request.ParsedRequest;
 import com.azerconnect.phonenumberschecker.entity.request.Request;
 import com.azerconnect.phonenumberschecker.entity.response.Response;
-import com.azerconnect.phonenumberschecker.exception.IllegalCharacterException;
-import com.azerconnect.phonenumberschecker.exception.WrongLengthException;
+import com.azerconnect.phonenumberschecker.exception.*;
 
 import java.util.Map;
 
@@ -14,6 +13,8 @@ public class CheckService {
     private ParsedRequest whiteList;
 
     public Response IsEligibleToSell(Request request){
+        validateRequest(request);
+        
         Response response = new Response();
         blackList = null;
         whiteList = null;
@@ -47,6 +48,21 @@ public class CheckService {
         return response;
     }
 
+    private void validateRequest(Request request) {
+        if(request.getMsisdnList() == null){
+            throw new NotExistException("msisdnList does not exist in Request");
+        }
+        else if(request.getMsisdnList().size() == 0){
+            throw new EmptyRequestException("msisdnList is empty");
+        }
+        else if(request.getBlacklistString() == null){
+            throw new NotExistException("blacklistString does not exist in Request");
+        }
+        else if(request.getWhitelistString() == null){
+            throw new NotExistException("whitelistString does not exist in Request");
+        }
+    }
+
     private void parseRequest(String listName, String inputData){
         if(inputData.length() == 0){
             return;
@@ -64,7 +80,7 @@ public class CheckService {
                 fillMap(listName, whiteList, splitData);
                 break;
             default:
-                System.out.println("Exception");
+                throw new WrongJsonKey("Json contains wrong key: " + listName);
         }
     }
 
