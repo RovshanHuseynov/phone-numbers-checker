@@ -4,10 +4,11 @@ import com.azerconnect.phonenumberschecker.entity.request.ParsedRequest;
 import com.azerconnect.phonenumberschecker.entity.request.Request;
 import com.azerconnect.phonenumberschecker.entity.response.Response;
 import com.azerconnect.phonenumberschecker.exception.*;
+import org.springframework.stereotype.Service;
 
 import java.util.Map;
 
-@org.springframework.stereotype.Service
+@Service
 public class CheckService {
     private ParsedRequest blackList;
     private ParsedRequest whiteList;
