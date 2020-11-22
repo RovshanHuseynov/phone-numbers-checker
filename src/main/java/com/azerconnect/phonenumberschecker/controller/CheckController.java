@@ -20,6 +20,6 @@ public class CheckController {
 
     @PostMapping("/iseligible")
     public Response IsEligibleToSell(@RequestBody Request request){
-        return checkService.IsEligibleToSell2(request);
+        return checkService.IsEligibleToSell(request);
     }
 }

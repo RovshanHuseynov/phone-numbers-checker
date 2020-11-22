@@ -12,15 +12,14 @@ import java.util.Set;
 
 @Service
 public class CheckService {
-    public Response IsEligibleToSell2(Request request) {
+    public Response IsEligibleToSell(Request request) {
         List<String> listMsisdn = request.getMsisdnList();
         String blacklistString = request.getBlacklistString();
         String whitelistString = request.getWhitelistString();
-        ParsedRequest blackList = parseRequest("blacklistString", blacklistString);
-        ParsedRequest whiteList = parseRequest("whitelistString", whitelistString);
+        ParsedRequest blackList = parseRequest(blacklistString);
+        ParsedRequest whiteList = parseRequest(whitelistString);
 
         Response response = new Response();
-
         for(String currentPhoneNumber : listMsisdn){
             System.out.println(currentPhoneNumber + " is being checked");
 
@@ -35,37 +34,19 @@ public class CheckService {
                 response.getResponse().put(currentPhoneNumber, "msisdn = " + currentPhoneNumber + " is not in whitelist");
             }
         }
-
         System.out.println("---------------------------------------");
         return response;
     }
 
-    private ParsedRequest parseRequest(String listName, String listData){
-        ParsedRequest parsedRequest = new ParsedRequest();
-
+    private ParsedRequest parseRequest(String listData){
         if(listData == null || listData.length() == 0){
-            return parsedRequest;
+            return null;
         }
 
+        ParsedRequest parsedRequest = new ParsedRequest();
         String[] splitData = listData.split(",");
 
-        switch (listName){
-            case "blacklistString" :
-                parsedRequest = fillMap(listName, parsedRequest, splitData);
-                break;
-            case "whitelistString" :
-                parsedRequest = fillMap(listName, parsedRequest, splitData);
-                break;
-            default:
-                throw new WrongJsonKey("Json contains wrong key: " + listName);
-        }
-
-        return parsedRequest;
-    }
-
-    private ParsedRequest fillMap(String mapName, ParsedRequest parsedRequest, String[] splitData) {
         int indexOfUnderline;
-
         for(String currentNumber : splitData){
             if(currentNumber.endsWith("%")){
                 parsedRequest.getRangeMask().add(currentNumber.substring(0, currentNumber.length() - 1));
