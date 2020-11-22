@@ -4,12 +4,24 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
-@Data
-@NoArgsConstructor
 public class ParsedRequest {
-    private final Map<String, Boolean> rangeMask = new HashMap<>();
+    private final Set<String> rangeMask = new HashSet<>();
     private final Map<String, String> wildcardMask = new HashMap<>();
-    private final Map<String, Boolean> exactMask = new HashMap<>();
+    private final Set<String>  exactMask = new HashSet<>();
+
+    public Set<String> getRangeMask() {
+        return rangeMask;
+    }
+
+    public Map<String, String> getWildcardMask() {
+        return wildcardMask;
+    }
+
+    public Set<String> getExactMask() {
+        return exactMask;
+    }
 }

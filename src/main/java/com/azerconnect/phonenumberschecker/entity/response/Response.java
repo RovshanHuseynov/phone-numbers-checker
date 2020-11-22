@@ -11,5 +11,5 @@ import java.util.Map;
 @NoArgsConstructor
 @AllArgsConstructor
 public class Response {
-    Map<String, String> response = new HashMap<>();
+    private Map<String, String> response = new HashMap<>();
 }
