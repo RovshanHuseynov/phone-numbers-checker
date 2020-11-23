@@ -3,10 +3,6 @@ package com.azerconnect.phonenumberschecker.service;
 import com.azerconnect.phonenumberschecker.entity.request.ParsedRequest;
 import com.azerconnect.phonenumberschecker.entity.request.Request;
 import com.azerconnect.phonenumberschecker.entity.response.Response;
-import com.azerconnect.phonenumberschecker.exception.EmptyRequestException;
-import com.azerconnect.phonenumberschecker.exception.IllegalCharacterException;
-import com.azerconnect.phonenumberschecker.exception.WrongJSONKeyException;
-import com.azerconnect.phonenumberschecker.exception.WrongLengthException;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
 
@@ -14,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.azerconnect.phonenumberschecker.utils.Constants.*;
 import static com.azerconnect.phonenumberschecker.utils.Utils.*;
 
 @Service
@@ -22,12 +17,13 @@ public class CheckService {
     Logger logger = Logger.getLogger(this.getClass());
 
     public Response IsEligibleToSell(Request request) {
+
         logger.info("program started");
         List<String> listMsisdn = request.getMsisdnList();
         String blacklistString = request.getBlacklistString();
         String whitelistString = request.getWhitelistString();
 
-        validateRequest(listMsisdn, blacklistString, whitelistString);
+        validateMsisdnList(listMsisdn, logger);
 
         ParsedRequest blackList = parseRequest(blacklistString, "blacklist");
         ParsedRequest whiteList = parseRequest(whitelistString, "whitelist");
@@ -52,37 +48,6 @@ public class CheckService {
         return response;
     }
 
-    public void validateRequest(List<String> listMsisdn, String blacklistString, String whitelistString){
-        if(isNull(listMsisdn)){
-            logger.error("request does not contain msisdnList as a key");
-            throw new WrongJSONKeyException("request does not contain msisdnList as a key");
-        }
-        else if(isEmpty(listMsisdn)){
-            logger.error("msisdnList is empty");
-            throw new EmptyRequestException("msisdnList is empty");
-        }
-        else if(isNull(blacklistString)){
-            logger.error("request does not contain blacklistString as a key");
-            throw new WrongJSONKeyException("request does not contain blacklistString as a key");
-        }
-        else if(isNull(whitelistString)){
-            logger.error("request does not contain whitelistString as a key");
-            throw new WrongJSONKeyException("request does not contain whitelistString as a key");
-        }
-
-
-        for(String currentPhoneNumber : listMsisdn){
-            if(!isDigit(currentPhoneNumber)){
-                logger.error(currentPhoneNumber + " in msisdnList contains illegal character");
-                throw new IllegalCharacterException(currentPhoneNumber + " in msisdnList contains illegal character");
-            }
-            else if(!checkLength(currentPhoneNumber, LENOFONENUMBER)){
-                logger.error(currentPhoneNumber + " in msisdnList does not contain " + LENOFONENUMBER + " characters");
-                throw new WrongLengthException(currentPhoneNumber + " in msisdnList does not contain " + LENOFONENUMBER + " characters");
-            }
-        }
-    }
-
     private ParsedRequest parseRequest(String listData, String nameOfList){
         if(isNull(listData) || isEmpty(listData)){
             return null;
@@ -96,32 +61,18 @@ public class CheckService {
         for(String currentNumber : splitData){
             if(currentNumber.endsWith("%")){
                 searchedKey = currentNumber.substring(0, currentNumber.length() - 1);
-
-                if(!isDigit(searchedKey)){
-                    logger.error(searchedKey + " in " + nameOfList + " contains illegal character");
-                    throw new IllegalCharacterException(searchedKey + " in " + nameOfList + " contains illegal character");
-                }
-
+                validateOtherList(searchedKey, nameOfList, logger);
                 parsedRequest.getRangeMask().add(searchedKey);
             }
             else if(currentNumber.contains("_")){
                 indexOfUnderline = currentNumber.indexOf("_");
                 searchedKey = currentNumber.substring(0, indexOfUnderline);
                 searchedValue = currentNumber.substring(indexOfUnderline + 1);
-
-                if(!isDigit(searchedKey) || !isDigit(searchedValue)){
-                    logger.error(currentNumber + " in " + nameOfList + " contains illegal character");
-                    throw new IllegalCharacterException(currentNumber + " in " + nameOfList + " contains illegal character");
-                }
-
+                validateOtherList(searchedKey, searchedValue, nameOfList, logger);
                 parsedRequest.getWildcardMask().put(searchedKey, searchedValue);
             }
             else {
-                if(!isDigit(currentNumber)){
-                    logger.error(currentNumber + " in " + nameOfList + " contains illegal character");
-                    throw new IllegalCharacterException(currentNumber + " in " + nameOfList + " contains illegal character");
-                }
-
+                validateOtherList(currentNumber, nameOfList, logger);
                 parsedRequest.getExactMask().add(currentNumber);
             }
         }
