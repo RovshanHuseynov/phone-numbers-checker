@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class CheckController {
     private final CheckService checkService;
 
+
     public CheckController(@Autowired CheckService checkService) {
         this.checkService = checkService;
     }
