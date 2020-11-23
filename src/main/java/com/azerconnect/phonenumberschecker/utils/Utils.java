@@ -1,42 +1,35 @@
 package com.azerconnect.phonenumberschecker.utils;
 
-import com.azerconnect.phonenumberschecker.entity.request.Request;
-import com.azerconnect.phonenumberschecker.exception.EmptyRequestException;
-import com.azerconnect.phonenumberschecker.exception.IllegalCharacterException;
-import com.azerconnect.phonenumberschecker.exception.NotExistException;
-import com.azerconnect.phonenumberschecker.exception.WrongLengthException;
+import com.azerconnect.phonenumberschecker.entity.request.ParsedRequest;
 
 import java.util.List;
 
 public class Utils {
-    public static boolean isNull(List<String> listMsisdn){
-        return listMsisdn == null;
+    public static boolean isNull(List<String> list){
+        return list == null;
     }
 
-    public static void checkLength(String data, int neededLength, String nameOfObject){
-        if(data.length() != neededLength){
-            throw new WrongLengthException(data + " in " + nameOfObject + " does not contain " + neededLength + " character");
-        }
+    public static boolean isNull(String string){
+        return string == null;
     }
 
-    public static void validateRequestt(Request request) {
-        if(request.getMsisdnList() == null){
-            throw new NotExistException("msisdnList does not exist in Request");
-        }
-        else if(request.getMsisdnList().size() == 0){
-            throw new EmptyRequestException("msisdnList is empty");
-        }
-        else if(request.getBlacklistString() == null){
-            throw new NotExistException("blacklistString does not exist in Request");
-        }
-        else if(request.getWhitelistString() == null){
-            throw new NotExistException("whitelistString does not exist in Request");
-        }
+    public static boolean isEmpty(List<String> list){
+        return list.size() == 0;
     }
 
-    public static void isDigit(String data, String nameOfObject){
-        if(!data.chars().allMatch(Character::isDigit)){
-            throw new IllegalCharacterException(data + " in " + nameOfObject + " does not contains illegal character");
-        }
+    public static boolean isEmpty(String string){
+        return string.length() == 0;
+    }
+
+    public static boolean isNull(ParsedRequest parsedRequest){
+        return parsedRequest == null;
+    }
+
+    public static boolean checkLength(String data, int neededLength){
+        return data.length() == neededLength;
+    }
+
+    public static boolean isDigit(String data){
+        return data.chars().allMatch(Character::isDigit);
     }
 }

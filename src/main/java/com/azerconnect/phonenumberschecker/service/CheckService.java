@@ -3,12 +3,18 @@ package com.azerconnect.phonenumberschecker.service;
 import com.azerconnect.phonenumberschecker.entity.request.ParsedRequest;
 import com.azerconnect.phonenumberschecker.entity.request.Request;
 import com.azerconnect.phonenumberschecker.entity.response.Response;
-import com.azerconnect.phonenumberschecker.exception.WrongJsonKey;
+import com.azerconnect.phonenumberschecker.exception.EmptyRequestException;
+import com.azerconnect.phonenumberschecker.exception.IllegalCharacterException;
+import com.azerconnect.phonenumberschecker.exception.WrongLengthException;
+import com.azerconnect.phonenumberschecker.utils.Constants;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import static com.azerconnect.phonenumberschecker.utils.Constants.*;
+import static com.azerconnect.phonenumberschecker.utils.Utils.*;
 
 @Service
 public class CheckService {
@@ -16,8 +22,22 @@ public class CheckService {
         List<String> listMsisdn = request.getMsisdnList();
         String blacklistString = request.getBlacklistString();
         String whitelistString = request.getWhitelistString();
-        ParsedRequest blackList = parseRequest(blacklistString);
-        ParsedRequest whiteList = parseRequest(whitelistString);
+
+        if(isNull(listMsisdn) || isEmpty(listMsisdn)){
+            throw new EmptyRequestException("msisdnList is empty");
+        }
+
+        for(String currentPhoneNumber : listMsisdn){
+            if(!isDigit(currentPhoneNumber)){
+                throw new IllegalCharacterException(currentPhoneNumber + " in msisdnList contains illegal character");
+            }
+            else if(!checkLength(currentPhoneNumber, LENOFONENUMBER)){
+                throw new WrongLengthException(currentPhoneNumber + " in msisdnList does not contain " + LENOFONENUMBER + " characters");
+            }
+        }
+
+        ParsedRequest blackList = parseRequest(blacklistString, "blacklist");
+        ParsedRequest whiteList = parseRequest(whitelistString, "whitelist");
 
         Response response = new Response();
         for(String currentPhoneNumber : listMsisdn){
@@ -38,8 +58,9 @@ public class CheckService {
         return response;
     }
 
-    private ParsedRequest parseRequest(String listData){
-        if(listData == null || listData.length() == 0){
+    private ParsedRequest parseRequest(String listData, String nameOfList){
+        if(isNull(listData) || isEmpty(listData)){
+            System.out.println(nameOfList + " ");
             return null;
         }
 
@@ -47,15 +68,33 @@ public class CheckService {
         String[] splitData = listData.split(",");
 
         int indexOfUnderline;
+        String searchedKey, searchedValue;
         for(String currentNumber : splitData){
             if(currentNumber.endsWith("%")){
-                parsedRequest.getRangeMask().add(currentNumber.substring(0, currentNumber.length() - 1));
+                searchedKey = currentNumber.substring(0, currentNumber.length() - 1);
+
+                if(!isDigit(searchedKey)){
+                    throw new IllegalCharacterException(searchedKey + " in " + nameOfList + " contains illegal character");
+                }
+
+                parsedRequest.getRangeMask().add(searchedKey);
             }
             else if(currentNumber.contains("_")){
                 indexOfUnderline = currentNumber.indexOf("_");
-                parsedRequest.getWildcardMask().put(currentNumber.substring(0, indexOfUnderline), currentNumber.substring(indexOfUnderline + 1));
+                searchedKey = currentNumber.substring(0, indexOfUnderline);
+                searchedValue = currentNumber.substring(indexOfUnderline + 1);
+
+                if(!isDigit(searchedKey) || !isDigit(searchedValue)){
+                    throw new IllegalCharacterException(currentNumber + " in " + nameOfList + " contains illegal character");
+                }
+
+                parsedRequest.getWildcardMask().put(searchedKey, searchedValue);
             }
             else {
+                if(!isDigit(currentNumber)){
+                    throw new IllegalCharacterException(currentNumber + " in " + nameOfList + " contains illegal character");
+                }
+
                 parsedRequest.getExactMask().add(currentNumber);
             }
         }
@@ -63,40 +102,43 @@ public class CheckService {
         return parsedRequest;
     }
 
-    private boolean listContains(String currentPhoneNumber, ParsedRequest parsedRequest, String typeOfList) {
-        if(typeOfList.equals("blackList") && parsedRequest == null){
-            System.out.println("empty blackList");
-            return false;
-        }
-        else if(typeOfList.equals("whiteList") && parsedRequest == null){
-            System.out.println("empty whiteList");
-            return true;
-        }
-
-        currentPhoneNumber = currentPhoneNumber.substring(3); // do not have to consider 994 while checking
-        int lenOfCurrentPhoneNumber = currentPhoneNumber.length();
-        Set<String> set = parsedRequest.getExactMask();
-
-        if(set.contains(currentPhoneNumber)){
-            System.out.println(typeOfList + " exact: true");
-            return true;
-        }
-
-        set = parsedRequest.getRangeMask();
-        for(int i=1; i<lenOfCurrentPhoneNumber; i++){
-            if(set.contains(currentPhoneNumber.substring(0, i))){
-                System.out.println(typeOfList + " range: " + true + " " + currentPhoneNumber.substring(0, i));
+    private boolean listContains(String currentPhoneNumber, ParsedRequest parsedRequest, String nameOfList) {
+        if(isNull(parsedRequest)){
+            if(nameOfList.equals("blackList")){
+                System.out.println("empty blackList");
+                return false;
+            }
+            else if(nameOfList.equals("whiteList")){
+                System.out.println("empty whiteList");
                 return true;
             }
         }
 
+        currentPhoneNumber = currentPhoneNumber.substring(3); // do not have to consider 994 while checking
+        Set<String> set = parsedRequest.getExactMask();
+        if(set.contains(currentPhoneNumber)){
+            System.out.println(nameOfList + " exact: true");
+            return true;
+        }
+
+        int lenOfCurrentPhoneNumber = currentPhoneNumber.length();
+        String searchedKey;
+        set = parsedRequest.getRangeMask();
+        for(int i=1; i<lenOfCurrentPhoneNumber; i++){
+            searchedKey = currentPhoneNumber.substring(0, i);
+            if(set.contains(searchedKey)){
+                System.out.println(nameOfList + " range: " + true + " " + currentPhoneNumber.substring(0, i));
+                return true;
+            }
+        }
+
+        String searchedValue;
         Map<String, String> map = parsedRequest.getWildcardMask();
-        String searchedKey, searchedValue;
         for(int i=0; i<lenOfCurrentPhoneNumber; i++){
             searchedKey = currentPhoneNumber.substring(0,i);
             searchedValue = currentPhoneNumber.substring(i+1);
             if(map.containsKey(searchedKey) && map.get(searchedKey).equals(searchedValue)){
-                System.out.println(typeOfList + " wildcard: true " + searchedKey + "_" + searchedValue);
+                System.out.println(nameOfList + " wildcard: " + true + " " + searchedKey + "_" + searchedValue);
                 return true;
             }
         }
