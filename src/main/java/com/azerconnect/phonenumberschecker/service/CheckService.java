@@ -5,6 +5,7 @@ import com.azerconnect.phonenumberschecker.entity.request.Request;
 import com.azerconnect.phonenumberschecker.entity.response.Response;
 import com.azerconnect.phonenumberschecker.exception.EmptyRequestException;
 import com.azerconnect.phonenumberschecker.exception.IllegalCharacterException;
+import com.azerconnect.phonenumberschecker.exception.WrongJSONKeyException;
 import com.azerconnect.phonenumberschecker.exception.WrongLengthException;
 import org.apache.log4j.Logger;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ public class CheckService {
         String blacklistString = request.getBlacklistString();
         String whitelistString = request.getWhitelistString();
 
-        validateRequest(listMsisdn);
+        validateRequest(listMsisdn, blacklistString, whitelistString);
 
         ParsedRequest blackList = parseRequest(blacklistString, "blacklist");
         ParsedRequest whiteList = parseRequest(whitelistString, "whitelist");
@@ -51,11 +52,24 @@ public class CheckService {
         return response;
     }
 
-    public void validateRequest(List<String> listMsisdn){
-        if(isNull(listMsisdn) || isEmpty(listMsisdn)){
+    public void validateRequest(List<String> listMsisdn, String blacklistString, String whitelistString){
+        if(isNull(listMsisdn)){
+            logger.error("request does not contain msisdnList as a key");
+            throw new WrongJSONKeyException("request does not contain msisdnList as a key");
+        }
+        else if(isEmpty(listMsisdn)){
             logger.error("msisdnList is empty");
             throw new EmptyRequestException("msisdnList is empty");
         }
+        else if(isNull(blacklistString)){
+            logger.error("request does not contain blacklistString as a key");
+            throw new WrongJSONKeyException("request does not contain blacklistString as a key");
+        }
+        else if(isNull(whitelistString)){
+            logger.error("request does not contain whitelistString as a key");
+            throw new WrongJSONKeyException("request does not contain whitelistString as a key");
+        }
+
 
         for(String currentPhoneNumber : listMsisdn){
             if(!isDigit(currentPhoneNumber)){

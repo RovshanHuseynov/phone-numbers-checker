@@ -23,4 +23,9 @@ public class CheckControllerExceptionHandler {
     public ExceptionDetails handleIllegalCharacterException(IllegalCharacterException exception){
         return new ExceptionDetails(LocalTime.now(),exception.getMessage(), HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(WrongJSONKeyException.class)
+    public ExceptionDetails handleWrongJSONKey(WrongJSONKeyException exception){
+        return new ExceptionDetails(LocalTime.now(),exception.getMessage(), HttpStatus.BAD_REQUEST);
+    }
 }
