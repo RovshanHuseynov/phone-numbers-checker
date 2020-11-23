@@ -2,7 +2,6 @@ package com.azerconnect.phonenumberschecker.exception;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.springframework.http.HttpStatus;
 
 import java.time.LocalTime;
 
@@ -11,5 +10,4 @@ import java.time.LocalTime;
 public class ExceptionDetails {
     private final LocalTime time;
     private final String message;
-    private final HttpStatus httpStatus;
 }

@@ -11,21 +11,21 @@ import java.time.LocalTime;
 public class CheckControllerExceptionHandler {
     @ExceptionHandler(WrongLengthException.class)
     public ExceptionDetails handleWrongLengthException(WrongLengthException exception){
-        return new ExceptionDetails(LocalTime.now(),exception.getMessage(), HttpStatus.BAD_REQUEST);
+        return new ExceptionDetails(LocalTime.now(),exception.getMessage());
     }
 
     @ExceptionHandler(EmptyRequestException.class)
     public ExceptionDetails handleEmptyRequestException(EmptyRequestException exception){
-        return new ExceptionDetails(LocalTime.now(),exception.getMessage(), HttpStatus.BAD_REQUEST);
+        return new ExceptionDetails(LocalTime.now(),exception.getMessage());
     }
 
     @ExceptionHandler(IllegalCharacterException.class)
     public ExceptionDetails handleIllegalCharacterException(IllegalCharacterException exception){
-        return new ExceptionDetails(LocalTime.now(),exception.getMessage(), HttpStatus.BAD_REQUEST);
+        return new ExceptionDetails(LocalTime.now(),exception.getMessage());
     }
 
     @ExceptionHandler(WrongJSONKeyException.class)
     public ExceptionDetails handleWrongJSONKey(WrongJSONKeyException exception){
-        return new ExceptionDetails(LocalTime.now(),exception.getMessage(), HttpStatus.BAD_REQUEST);
+        return new ExceptionDetails(LocalTime.now(),exception.getMessage());
     }
 }
