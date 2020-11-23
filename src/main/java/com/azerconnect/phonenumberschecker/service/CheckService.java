@@ -26,6 +26,32 @@ public class CheckService {
         String blacklistString = request.getBlacklistString();
         String whitelistString = request.getWhitelistString();
 
+        validateRequest(listMsisdn);
+
+        ParsedRequest blackList = parseRequest(blacklistString, "blacklist");
+        ParsedRequest whiteList = parseRequest(whitelistString, "whitelist");
+
+        Response response = new Response();
+        for(String currentPhoneNumber : listMsisdn){
+            logger.info(currentPhoneNumber + " is being checked");
+
+            if(listContains(currentPhoneNumber, blackList, "blackList")){
+                response.getResponse().put(currentPhoneNumber, "msisdn = " + currentPhoneNumber + " is in blacklist");
+            }
+            else if(listContains(currentPhoneNumber, whiteList, "whiteList")){
+                response.getResponse().put(currentPhoneNumber, "ok");
+            }
+            else {
+                logger.info("not in whiteList");
+                response.getResponse().put(currentPhoneNumber, "msisdn = " + currentPhoneNumber + " is not in whitelist");
+            }
+        }
+        logger.info("program finished");
+        logger.info("---------------------------------------");
+        return response;
+    }
+
+    public void validateRequest(List<String> listMsisdn){
         if(isNull(listMsisdn) || isEmpty(listMsisdn)){
             logger.error("msisdnList is empty");
             throw new EmptyRequestException("msisdnList is empty");
@@ -41,33 +67,10 @@ public class CheckService {
                 throw new WrongLengthException(currentPhoneNumber + " in msisdnList does not contain " + LENOFONENUMBER + " characters");
             }
         }
-
-        ParsedRequest blackList = parseRequest(blacklistString, "blacklist");
-        ParsedRequest whiteList = parseRequest(whitelistString, "whitelist");
-
-        Response response = new Response();
-        for(String currentPhoneNumber : listMsisdn){
-            //logger.info(currentPhoneNumber + " is being checked");
-
-            if(listContains(currentPhoneNumber, blackList, "blackList")){
-                response.getResponse().put(currentPhoneNumber, "msisdn = " + currentPhoneNumber + " is in blacklist");
-            }
-            else if(listContains(currentPhoneNumber, whiteList, "whiteList")){
-                response.getResponse().put(currentPhoneNumber, "ok");
-            }
-            else {
-                //logger.info("not in whiteList");
-                response.getResponse().put(currentPhoneNumber, "msisdn = " + currentPhoneNumber + " is not in whitelist");
-            }
-        }
-        logger.info("program finished");
-        logger.info("---------------------------------------");
-        return response;
     }
 
     private ParsedRequest parseRequest(String listData, String nameOfList){
         if(isNull(listData) || isEmpty(listData)){
-            //logger.info(nameOfList + " is empty");
             return null;
         }
 
@@ -115,11 +118,11 @@ public class CheckService {
     private boolean listContains(String currentPhoneNumber, ParsedRequest parsedRequest, String nameOfList) {
         if(isNull(parsedRequest)){
             if(nameOfList.equals("blackList")){
-                //logger.info("empty blackList");
+                logger.info("empty blackList");
                 return false;
             }
             else if(nameOfList.equals("whiteList")){
-                //logger.info("empty whiteList");
+                logger.info("empty whiteList");
                 return true;
             }
         }
@@ -127,7 +130,7 @@ public class CheckService {
         currentPhoneNumber = currentPhoneNumber.substring(3); // do not have to consider 994 while checking
         Set<String> set = parsedRequest.getExactMask();
         if(set.contains(currentPhoneNumber)){
-            //logger.info(nameOfList + " exact: true");
+            logger.info(nameOfList + " exact: true");
             return true;
         }
 
@@ -137,7 +140,7 @@ public class CheckService {
         for(int i=1; i<lenOfCurrentPhoneNumber; i++){
             searchedKey = currentPhoneNumber.substring(0, i);
             if(set.contains(searchedKey)){
-                //logger.info(nameOfList + " range: " + true + " " + currentPhoneNumber.substring(0, i));
+                logger.info(nameOfList + " range: " + true + " " + currentPhoneNumber.substring(0, i));
                 return true;
             }
         }
@@ -148,7 +151,7 @@ public class CheckService {
             searchedKey = currentPhoneNumber.substring(0,i);
             searchedValue = currentPhoneNumber.substring(i+1);
             if(map.containsKey(searchedKey) && map.get(searchedKey).equals(searchedValue)){
-                //logger.info(nameOfList + " wildcard: " + true + " " + searchedKey + "_" + searchedValue);
+                logger.info(nameOfList + " wildcard: " + true + " " + searchedKey + "_" + searchedValue);
                 return true;
             }
         }
