@@ -9,7 +9,7 @@ import java.time.LocalTime;
 @Data
 @AllArgsConstructor
 public class ExceptionDetails {
-    private final LocalTime localTime;
+    private final LocalTime time;
     private final String message;
     private final HttpStatus httpStatus;
 }

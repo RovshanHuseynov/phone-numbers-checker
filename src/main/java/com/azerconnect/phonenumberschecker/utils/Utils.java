@@ -11,6 +11,8 @@ import java.util.List;
 import static com.azerconnect.phonenumberschecker.utils.Constants.*;
 
 public class Utils {
+    static Logger logger = Logger.getLogger(Utils.class);
+
     public static boolean isNull(List<String> list){
         return list == null;
     }
@@ -39,7 +41,7 @@ public class Utils {
         return data.chars().allMatch(Character::isDigit);
     }
 
-    public static void validateMsisdnList(List<String> listMsisdn, Logger logger){
+    public static void validateMsisdnList(List<String> listMsisdn){
         if(isNull(listMsisdn) || isEmpty(listMsisdn)){
             logger.error("msisdnList is empty");
             throw new EmptyRequestException("msisdnList is empty");
@@ -57,14 +59,14 @@ public class Utils {
         }
     }
 
-    public static void validateOtherList(String searchedKey, String nameOfList, Logger logger){
+    public static void validateOtherList(String searchedKey, String nameOfList){
         if(!isDigit(searchedKey)){
             logger.error(searchedKey + " in " + nameOfList + " contains illegal character");
             throw new IllegalCharacterException(searchedKey + " in " + nameOfList + " contains illegal character");
         }
     }
 
-    public static void validateOtherList(String searchedKey, String searchedValue, String nameOfList, Logger logger){
+    public static void validateOtherList(String searchedKey, String searchedValue, String nameOfList){
         if(!isDigit(searchedKey) || !isDigit(searchedValue)){
             logger.error(searchedKey + "_" + searchedValue + " in " + nameOfList + " contains illegal character");
             throw new IllegalCharacterException(searchedKey + "_" + searchedValue + " in " + nameOfList + " contains illegal character");

@@ -16,19 +16,19 @@ import static com.azerconnect.phonenumberschecker.utils.Utils.*;
 public class CheckService {
     Logger logger = Logger.getLogger(this.getClass());
 
-    public Response IsEligibleToSell(Request request) {
-
+    public Map<String, String> IsEligibleToSell(Request request) {
         logger.info("program started");
         List<String> listMsisdn = request.getMsisdnList();
         String blacklistString = request.getBlacklistString();
         String whitelistString = request.getWhitelistString();
 
-        validateMsisdnList(listMsisdn, logger);
+        validateMsisdnList(listMsisdn);
 
         ParsedRequest blackList = parseRequest(blacklistString, "blacklist");
         ParsedRequest whiteList = parseRequest(whitelistString, "whitelist");
 
         Response response = new Response();
+
         for(String currentPhoneNumber : listMsisdn){
             logger.info(currentPhoneNumber + " is being checked");
 
@@ -36,7 +36,7 @@ public class CheckService {
                 response.getResponse().put(currentPhoneNumber, "msisdn = " + currentPhoneNumber + " is in blacklist");
             }
             else if(listContains(currentPhoneNumber, whiteList, "whiteList")){
-                response.getResponse().put(currentPhoneNumber, "ok");
+                response.getResponse().put(currentPhoneNumber, "OK");
             }
             else {
                 logger.info("not in whiteList");
@@ -45,7 +45,7 @@ public class CheckService {
         }
         logger.info("program finished");
         logger.info("---------------------------------------");
-        return response;
+        return response.getResponse();
     }
 
     private ParsedRequest parseRequest(String listData, String nameOfList){
@@ -61,18 +61,18 @@ public class CheckService {
         for(String currentNumber : splitData){
             if(currentNumber.endsWith("%")){
                 searchedKey = currentNumber.substring(0, currentNumber.length() - 1);
-                validateOtherList(searchedKey, nameOfList, logger);
+                validateOtherList(searchedKey, nameOfList);
                 parsedRequest.getRangeMask().add(searchedKey);
             }
             else if(currentNumber.contains("_")){
                 indexOfUnderline = currentNumber.indexOf("_");
                 searchedKey = currentNumber.substring(0, indexOfUnderline);
                 searchedValue = currentNumber.substring(indexOfUnderline + 1);
-                validateOtherList(searchedKey, searchedValue, nameOfList, logger);
+                validateOtherList(searchedKey, searchedValue, nameOfList);
                 parsedRequest.getWildcardMask().put(searchedKey, searchedValue);
             }
             else {
-                validateOtherList(currentNumber, nameOfList, logger);
+                validateOtherList(currentNumber, nameOfList);
                 parsedRequest.getExactMask().add(currentNumber);
             }
         }
@@ -95,7 +95,7 @@ public class CheckService {
         currentPhoneNumber = currentPhoneNumber.substring(3); // do not have to consider 994 while checking
         Set<String> set = parsedRequest.getExactMask();
         if(set.contains(currentPhoneNumber)){
-            logger.info(nameOfList + " exact: true");
+            logger.info(currentPhoneNumber + " is found in Exact Mask of " + nameOfList);
             return true;
         }
 
@@ -105,7 +105,7 @@ public class CheckService {
         for(int i=1; i<lenOfCurrentPhoneNumber; i++){
             searchedKey = currentPhoneNumber.substring(0, i);
             if(set.contains(searchedKey)){
-                logger.info(nameOfList + " range: " + true + " " + currentPhoneNumber.substring(0, i));
+                logger.info(searchedKey + " is found in Range Mask of " + nameOfList);
                 return true;
             }
         }
@@ -116,7 +116,7 @@ public class CheckService {
             searchedKey = currentPhoneNumber.substring(0,i);
             searchedValue = currentPhoneNumber.substring(i+1);
             if(map.containsKey(searchedKey) && map.get(searchedKey).equals(searchedValue)){
-                logger.info(nameOfList + " wildcard: " + true + " " + searchedKey + "_" + searchedValue);
+                logger.info(searchedKey + "_" + searchedValue + " is found in Wildcard Mask of " + nameOfList);
                 return true;
             }
         }
