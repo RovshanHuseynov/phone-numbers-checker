@@ -10,13 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import static com.azerconnect.phonenumberschecker.utils.Utils.*;
+import static com.azerconnect.phonenumberschecker.utils.ValidationUtil.*;
+import static com.azerconnect.phonenumberschecker.utils.ParserUtil.*;
 
 @Service
 public class CheckService {
     Logger logger = Logger.getLogger(this.getClass());
 
-    public Map<String, String> IsEligibleToSell(Request request) {
+    public Map<String, String> isEligibleToSell(Request request) {
         logger.info("program started");
         List<String> listMsisdn = request.getMsisdnList();
         String blacklistString = request.getBlacklistString();
@@ -46,38 +47,6 @@ public class CheckService {
         logger.info("program finished");
         logger.info("---------------------------------------");
         return response.getResponse();
-    }
-
-    private ParsedRequest parseRequest(String listData, String nameOfList){
-        if(isNull(listData) || isEmpty(listData)){
-            return null;
-        }
-
-        ParsedRequest parsedRequest = new ParsedRequest();
-        String[] splitData = listData.split(",");
-
-        int indexOfUnderline;
-        String searchedKey, searchedValue;
-        for(String currentNumber : splitData){
-            if(currentNumber.endsWith("%")){
-                searchedKey = currentNumber.substring(0, currentNumber.length() - 1);
-                validateOtherList(searchedKey, nameOfList);
-                parsedRequest.getRangeMask().add(searchedKey);
-            }
-            else if(currentNumber.contains("_")){
-                indexOfUnderline = currentNumber.indexOf("_");
-                searchedKey = currentNumber.substring(0, indexOfUnderline);
-                searchedValue = currentNumber.substring(indexOfUnderline + 1);
-                validateOtherList(searchedKey, searchedValue, nameOfList);
-                parsedRequest.getWildcardMask().put(searchedKey, searchedValue);
-            }
-            else {
-                validateOtherList(currentNumber, nameOfList);
-                parsedRequest.getExactMask().add(currentNumber);
-            }
-        }
-
-        return parsedRequest;
     }
 
     private boolean listContains(String currentPhoneNumber, ParsedRequest parsedRequest, String nameOfList) {

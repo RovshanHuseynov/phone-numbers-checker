@@ -9,11 +9,6 @@ import java.time.LocalTime;
 
 @RestControllerAdvice
 public class CheckControllerExceptionHandler {
-    @ExceptionHandler(WrongLengthException.class)
-    public ExceptionDetails handleWrongLengthException(WrongLengthException exception){
-        return new ExceptionDetails(LocalTime.now(),exception.getMessage());
-    }
-
     @ExceptionHandler(EmptyRequestException.class)
     public ExceptionDetails handleEmptyRequestException(EmptyRequestException exception){
         return new ExceptionDetails(LocalTime.now(),exception.getMessage());
@@ -24,8 +19,8 @@ public class CheckControllerExceptionHandler {
         return new ExceptionDetails(LocalTime.now(),exception.getMessage());
     }
 
-    @ExceptionHandler(WrongJSONKeyException.class)
-    public ExceptionDetails handleWrongJSONKey(WrongJSONKeyException exception){
+    @ExceptionHandler(WrongLengthException.class)
+    public ExceptionDetails handleWrongLengthException(WrongLengthException exception){
         return new ExceptionDetails(LocalTime.now(),exception.getMessage());
     }
 }

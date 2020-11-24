@@ -17,12 +17,12 @@ import java.util.Map;
 public class CheckController {
     private final CheckService checkService;
 
-    public CheckController(@Autowired CheckService checkService) {
+    public CheckController(CheckService checkService) {
         this.checkService = checkService;
     }
 
     @PostMapping("/iseligible")
-    public Map<String, String> IsEligibleToSell(@RequestBody Request request){
-        return checkService.IsEligibleToSell(request);
+    public Map<String, String> isEligibleToSell(@RequestBody Request request){
+        return checkService.isEligibleToSell(request);
     }
 }
