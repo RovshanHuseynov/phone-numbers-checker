@@ -40,7 +40,7 @@
             <scope>provided</scope>
         </dependency>
 
-        <!-- Log4j2 Dependency -->
+        <!-- Log4j Dependency -->
         <dependency>
             <groupId>log4j</groupId>
             <artifactId>log4j</artifactId>
