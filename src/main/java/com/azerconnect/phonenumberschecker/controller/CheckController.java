@@ -1,10 +1,7 @@
 package com.azerconnect.phonenumberschecker.controller;
 
 import com.azerconnect.phonenumberschecker.entity.request.Request;
-import com.azerconnect.phonenumberschecker.entity.response.Response;
 import com.azerconnect.phonenumberschecker.service.CheckService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
